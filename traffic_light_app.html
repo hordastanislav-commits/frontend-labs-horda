@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Світлофор — Горда Станіслав</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131a;
+    --surface2: #1c1c28;
+    --border: #2a2a3d;
+    --red: #ff2244;
+    --yellow: #ffcc00;
+    --green: #00ff88;
+    --f1-red: #ff2244;
+    --f1-green: #00ff88;
+    --text: #e8e8f0;
+    --muted: #666680;
+    --accent: #7b6fff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Rajdhani', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(123,111,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(123,111,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #root { position: relative; z-index: 1; }
+
+  /* NAVBAR */
+  .navbar {
+    background: rgba(19,19,26,0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .navbar-brand {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+
+  .navbar-brand span { color: var(--green); }
+
+  .nav-links { display: flex; gap: 0.5rem; align-items: center; }
+
+  .nav-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.4rem 1rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .nav-btn:hover { border-color: var(--accent); color: var(--text); }
+  .nav-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(123,111,255,0.1); }
+  .nav-btn.logout { border-color: var(--red); color: var(--red); }
+  .nav-btn.logout:hover { background: rgba(255,34,68,0.1); }
+
+  /* PAGE CONTAINER */
+  .page { max-width: 900px; margin: 0 auto; padding: 3rem 2rem; }
+
+  /* LOGIN PAGE */
+  .login-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 64px);
+  }
+
+  .login-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 3rem;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .login-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+
+  .login-sub {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+  }
+
+  .form-group { margin-bottom: 1.2rem; }
+
+  .form-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .form-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  .form-input:focus { border-color: var(--accent); }
+
+  .btn-primary {
+    width: 100%;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    padding: 0.85rem;
+    color: white;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 0.5rem;
+  }
+
+  .btn-primary:hover { background: #9b8fff; transform: translateY(-1px); }
+
+  .login-hint {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    background: var(--surface2);
+    padding: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+  }
+
+  .error-msg {
+    background: rgba(255,34,68,0.1);
+    border: 1px solid rgba(255,34,68,0.3);
+    color: var(--red);
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  /* TRAFFIC LIGHT COMPONENT */
+  .tl-housing {
+    background: #111118;
+    border: 2px solid #2a2a3d;
+    border-radius: 16px;
+    padding: 1.5rem 1.2rem;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 0 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+    position: relative;
+  }
+
+  .tl-housing::before {
+    content: '';
+    position: absolute;
+    top: -12px;
+    width: 30px;
+    height: 14px;
+    background: #1c1c28;
+    border: 2px solid #2a2a3d;
+    border-radius: 4px 4px 0 0;
+    border-bottom: none;
+  }
+
+  .tl-bulb {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    transition: all 0.4s ease;
+    position: relative;
+  }
+
+  .tl-bulb.off {
+    background: #1a1a22;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  }
+
+  .tl-bulb.red-on {
+    background: var(--red);
+    box-shadow: 0 0 20px var(--red), 0 0 40px rgba(255,34,68,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+
+  .tl-bulb.yellow-on {
+    background: var(--yellow);
+    box-shadow: 0 0 20px var(--yellow), 0 0 40px rgba(255,204,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+
+  .tl-bulb.green-on {
+    background: var(--green);
+    box-shadow: 0 0 20px var(--green), 0 0 40px rgba(0,255,136,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+
+  /* F1 LIGHT */
+  .f1-housing {
+    background: #111118;
+    border: 2px solid #2a2a3d;
+    border-radius: 12px;
+    padding: 1.5rem 2rem;
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .f1-bulb {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+  }
+
+  .f1-bulb.off { background: #1a1a22; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+
+  .f1-bulb.red-on {
+    background: var(--f1-red);
+    box-shadow: 0 0 20px var(--f1-red), 0 0 40px rgba(255,34,68,0.5);
+  }
+
+  .f1-bulb.green-on {
+    background: var(--f1-green);
+    box-shadow: 0 0 20px var(--f1-green), 0 0 40px rgba(0,255,136,0.5);
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+  }
+
+  .card-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+
+  /* STATUS BADGE */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .status-badge.red { background: rgba(255,34,68,0.15); color: var(--red); border: 1px solid rgba(255,34,68,0.3); }
+  .status-badge.yellow { background: rgba(255,204,0,0.15); color: var(--yellow); border: 1px solid rgba(255,204,0,0.3); }
+  .status-badge.green { background: rgba(0,255,136,0.15); color: var(--green); border: 1px solid rgba(0,255,136,0.3); }
+
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* CONTROL BUTTONS */
+  .ctrl-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.6rem 1.4rem;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .ctrl-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .ctrl-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .ctrl-btn.f1-btn {
+    border-color: var(--f1-green);
+    color: var(--f1-green);
+    background: rgba(0,255,136,0.05);
+  }
+
+  .ctrl-btn.f1-btn:hover:not(:disabled) { background: rgba(0,255,136,0.1); }
+  .ctrl-btn.f1-btn:disabled { border-color: var(--border); color: var(--muted); background: transparent; }
+
+  /* PAGE TITLE */
+  .page-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 0.5rem;
+  }
+
+  .page-title span { color: var(--accent); }
+
+  .page-desc { color: var(--muted); margin-bottom: 2.5rem; font-size: 1rem; }
+
+  /* GRID LAYOUTS */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .flex-center { display: flex; align-items: center; justify-content: center; }
+  .flex-col { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+
+  /* WARN BOX */
+  .warn-box {
+    background: rgba(255,34,68,0.08);
+    border: 1px solid rgba(255,34,68,0.25);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    color: rgba(255,100,120,0.9);
+    margin-top: 0.75rem;
+  }
+
+  /* HOME PAGE */
+  .home-hero {
+    text-align: center;
+    padding: 4rem 0;
+  }
+
+  .hero-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 3rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+  }
+
+  .hero-title .line2 { color: var(--accent); }
+
+  .hero-sub { color: var(--muted); font-size: 1.1rem; margin-bottom: 3rem; }
+
+  .hero-btn {
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    padding: 1rem 2.5rem;
+    color: white;
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .hero-btn:hover { background: #9b8fff; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(123,111,255,0.3); }
+
+  .timer-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 1rem;
+    overflow: hidden;
+  }
+
+  .timer-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 1s linear;
+  }
+
+  @media (max-width: 600px) {
+    .two-col { grid-template-columns: 1fr; }
+    .hero-title { font-size: 2rem; }
+    .page { padding: 2rem 1rem; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useContext, createContext, useCallback } = React;
+
+// ===================== CONTEXT =====================
+const AppContext = createContext();
+
+const PHASES = ['red', 'yellow', 'green'];
+const PHASE_LABELS = { red: 'Стоп', yellow: 'Увага', green: 'Рух' };
+const PHASE_DURATIONS = { red: 5000, yellow: 2000, green: 5000 };
+
+function AppProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [page, setPage] = useState('home');
+
+  // Авто-світлофор
+  const [carPhase, setCarPhase] = useState('red');
+  const [carTimer, setCarTimer] = useState(PHASE_DURATIONS['red'] / 1000);
+
+  // F1 світлофор
+  const [f1State, setF1State] = useState('stop'); // 'stop' | 'start'
+  const [f1Timer, setF1Timer] = useState(10);
+
+  const isCarGreen = carPhase === 'green';
+
+  // Авто-цикл світлофора
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCarPhase(prev => {
+        const idx = PHASES.indexOf(prev);
+        return PHASES[(idx + 1) % PHASES.length];
+      });
+    }, PHASE_DURATIONS[carPhase]);
+    return () => clearInterval(interval);
+  }, [carPhase]);
+
+  // Таймер відліку для авто-світлофора
+  useEffect(() => {
+    setCarTimer(PHASE_DURATIONS[carPhase] / 1000);
+    const iv = setInterval(() => setCarTimer(t => t > 0 ? t - 1 : 0), 1000);
+    return () => clearInterval(iv);
+  }, [carPhase]);
+
+  // F1 авто-цикл 10 секунд
+  useEffect(() => {
+    if (isCarGreen) {
+      setF1State('stop');
+      setF1Timer(10);
+      return;
+    }
+    const interval = setInterval(() => {
+      setF1State(prev => prev === 'stop' ? 'start' : 'stop');
+      setF1Timer(10);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [isCarGreen]);
+
+  // F1 таймер відліку
+  useEffect(() => {
+    if (isCarGreen) return;
+    setF1Timer(10);
+    const iv = setInterval(() => setF1Timer(t => t > 0 ? t - 1 : 0), 1000);
+    return () => clearInterval(iv);
+  }, [f1State, isCarGreen]);
+
+  const toggleF1 = useCallback(() => {
+    if (isCarGreen) return;
+    setF1State(prev => prev === 'stop' ? 'start' : 'stop');
+    setF1Timer(10);
+  }, [isCarGreen]);
+
+  const login = (username) => {
+    setUser({ name: username });
+    setPage('home');
+  };
+
+  const logout = () => {
+    setUser(null);
+    setPage('home');
+  };
+
+  const navigate = (p) => {
+    if ((p === 'f1' || p === 'traffic') && !user) {
+      setPage('login');
+    } else {
+      setPage(p);
+    }
+  };
+
+  return (
+    <AppContext.Provider value={{
+      user, login, logout,
+      page, navigate,
+      carPhase, carTimer,
+      f1State, f1Timer, isCarGreen, toggleF1
+    }}>
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+// ===================== NAVBAR =====================
+function Navbar() {
+  const { user, logout, page, navigate } = useContext(AppContext);
+  return (
+    <nav className="navbar">
+      <div className="navbar-brand">
+        TRAFFIC<span>SYS</span>
+      </div>
+      <div className="nav-links">
+        <button className={`nav-btn ${page==='home'?'active':''}`} onClick={() => navigate('home')}>Головна</button>
+        <button className={`nav-btn ${page==='traffic'?'active':''}`} onClick={() => navigate('traffic')}>Світлофор</button>
+        {user && (
+          <button className={`nav-btn ${page==='f1'?'active':''}`} onClick={() => navigate('f1')}>Світлофор F1</button>
+        )}
+        {user ? (
+          <button className="nav-btn logout" onClick={logout}>Вийти ({user.name})</button>
+        ) : (
+          <button className="nav-btn" onClick={() => navigate('login')}>Увійти</button>
+        )}
+      </div>
+    </nav>
+  );
+}
+
+// ===================== CAR TRAFFIC LIGHT =====================
+function CarTrafficLight({ size = 60 }) {
+  const { carPhase } = useContext(AppContext);
+  return (
+    <div className="tl-housing">
+      <div className={`tl-bulb ${carPhase === 'red' ? 'red-on' : 'off'}`} style={{width:size,height:size}} />
+      <div className={`tl-bulb ${carPhase === 'yellow' ? 'yellow-on' : 'off'}`} style={{width:size,height:size}} />
+      <div className={`tl-bulb ${carPhase === 'green' ? 'green-on' : 'off'}`} style={{width:size,height:size}} />
+    </div>
+  );
+}
+
+// ===================== F1 TRAFFIC LIGHT =====================
+function F1TrafficLight() {
+  const { f1State } = useContext(AppContext);
+  const isStop = f1State === 'stop';
+  return (
+    <div className="f1-housing">
+      {[1,2,3,4,5].map(i => (
+        <div key={i} className={`f1-bulb ${isStop ? 'red-on' : 'green-on'}`} />
+      ))}
+    </div>
+  );
+}
+
+// ===================== LOGIN PAGE =====================
+function LoginPage() {
+  const { login, navigate } = useContext(AppContext);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleLogin = () => {
+    if (!username.trim()) { setError('Введіть логін'); return; }
+    if (password !== '1234') { setError('Невірний пароль (підказка: 1234)'); return; }
+    login(username.trim());
+    navigate('home');
+  };
+
+  return (
+    <div className="login-wrap">
+      <div className="login-card">
+        <div className="login-title">АВТОРИЗАЦІЯ</div>
+        <div className="login-sub">Введіть дані для входу</div>
+        {error && <div className="error-msg">{error}</div>}
+        <div className="form-group">
+          <label className="form-label">Логін</label>
+          <input className="form-input" value={username} onChange={e => setUsername(e.target.value)}
+            placeholder="Ваше ім'я" onKeyDown={e => e.key === 'Enter' && handleLogin()} />
+        </div>
+        <div className="form-group">
+          <label className="form-label">Пароль</label>
+          <input className="form-input" type="password" value={password} onChange={e => setPassword(e.target.value)}
+            placeholder="••••" onKeyDown={e => e.key === 'Enter' && handleLogin()} />
+        </div>
+        <button className="btn-primary" onClick={handleLogin}>УВІЙТИ</button>
+        <div className="login-hint">Демо: будь-який логін, пароль: <strong>1234</strong></div>
+      </div>
+    </div>
+  );
+}
+
+// ===================== HOME PAGE =====================
+function HomePage() {
+  const { navigate, user } = useContext(AppContext);
+  return (
+    <div className="page">
+      <div className="home-hero">
+        <div className="hero-title">
+          <div>СИСТЕМА</div>
+          <div className="line2">СВІТЛОФОРІВ</div>
+        </div>
+        <div className="hero-sub">Управління дорожнім рухом та Формулою-1</div>
+        <button className="hero-btn" onClick={() => navigate('traffic')}>
+          ВІДКРИТИ ПАНЕЛЬ
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ===================== TRAFFIC PAGE =====================
+function TrafficPage() {
+  const { carPhase, carTimer, navigate } = useContext(AppContext);
+  const colorMap = { red: 'red', yellow: 'yellow', green: 'green' };
+
+  return (
+    <div className="page">
+      <div className="page-title">АВТО<span>СВІТЛОФОР</span></div>
+      <div className="page-desc">Автоматичний цикл: Стоп → Увага → Рух</div>
+
+      <div className="two-col">
+        <div className="card">
+          <div className="card-title">Поточний стан</div>
+          <div className="flex-col">
+            <CarTrafficLight />
+            <div className={`status-badge ${colorMap[carPhase]}`}>
+              <span className="dot"></span>
+              {PHASE_LABELS[carPhase]}
+            </div>
+            <div style={{color:'var(--muted)', fontSize:'0.85rem'}}>
+              Зміна через: <strong style={{color:'var(--text)'}}>{carTimer}с</strong>
+            </div>
+            <div className="timer-bar" style={{width:'100%'}}>
+              <div className="timer-fill"
+                style={{width: `${(carTimer / (PHASE_DURATIONS[carPhase]/1000)) * 100}%`}} />
+            </div>
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="card-title">Інформація</div>
+          <div style={{color:'var(--muted)', lineHeight:'1.8', fontSize:'0.95rem'}}>
+            <div>🔴 <strong style={{color:'var(--text)'}}>Стоп</strong> — 5 секунд</div>
+            <div style={{marginTop:'0.5rem'}}>🟡 <strong style={{color:'var(--text)'}}>Увага</strong> — 2 секунди</div>
+            <div style={{marginTop:'0.5rem'}}>🟢 <strong style={{color:'var(--text)'}}>Рух</strong> — 5 секунд</div>
+            <div style={{marginTop:'1.5rem', padding:'0.75rem', background:'var(--surface2)', borderRadius:'6px', fontSize:'0.85rem'}}>
+              Під час зеленого сигналу кнопка F1-світлофора буде заблокована
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===================== F1 PAGE =====================
+function F1Page() {
+  const { user, navigate, carPhase, f1State, f1Timer, isCarGreen, toggleF1 } = useContext(AppContext);
+  const colorMap = { red: 'red', yellow: 'yellow', green: 'green' };
+
+  if (!user) {
+    return (
+      <div className="page">
+        <div style={{textAlign:'center', padding:'4rem'}}>
+          <div style={{fontSize:'3rem', marginBottom:'1rem'}}>🔒</div>
+          <div style={{fontFamily:'Orbitron', fontSize:'1.2rem', marginBottom:'1rem'}}>ДОСТУП ЗАБОРОНЕНО</div>
+          <div style={{color:'var(--muted)', marginBottom:'2rem'}}>Ця сторінка доступна лише для авторизованих користувачів</div>
+          <button className="btn-primary" style={{width:'auto', padding:'0.8rem 2rem'}} onClick={() => navigate('login')}>
+            УВІЙТИ
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="page">
+      <div className="page-title">СВІТЛОФОР <span>F1</span></div>
+      <div className="page-desc">Синхронізований з авто-світлофором • Формула-1</div>
+
+      <div className="two-col">
+        {/* Авто-світлофор (відображення) */}
+        <div className="card">
+          <div className="card-title">Авто-світлофор (стан)</div>
+          <div className="flex-col">
+            <CarTrafficLight size={50} />
+            <div className={`status-badge ${colorMap[carPhase]}`}>
+              <span className="dot"></span>
+              {PHASE_LABELS[carPhase]}
+            </div>
+            {isCarGreen && (
+              <div className="warn-box">
+                ⚠ Зелений сигнал — F1 заблоковано
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* F1 світлофор */}
+        <div className="card">
+          <div className="card-title">Світлофор F1</div>
+          <div className="flex-col">
+            <F1TrafficLight />
+            <div className={`status-badge ${f1State === 'stop' ? 'red' : 'green'}`}>
+              <span className="dot"></span>
+              {f1State === 'stop' ? 'СТОП' : 'СТАРТ'}
+            </div>
+            {!isCarGreen && (
+              <div style={{color:'var(--muted)', fontSize:'0.85rem'}}>
+                Авто-зміна через: <strong style={{color:'var(--text)'}}>{f1Timer}с</strong>
+              </div>
+            )}
+            <button
+              className="ctrl-btn f1-btn"
+              disabled={isCarGreen}
+              onClick={toggleF1}
+            >
+              {f1State === 'stop' ? '▶ СТАРТ' : '⬛ СТОП'}
+            </button>
+            {isCarGreen && (
+              <div className="warn-box">
+                Не можна змінювати, коли авто-світлофор зелений
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===================== APP =====================
+function App() {
+  const { page } = useContext(AppContext);
+  const pages = { home: <HomePage />, login: <LoginPage />, traffic: <TrafficPage />, f1: <F1Page /> };
+  return (
+    <div>
+      <Navbar />
+      {pages[page] || <HomePage />}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <AppProvider><App /></AppProvider>
+);
+</script>
+</body>
+</html>
